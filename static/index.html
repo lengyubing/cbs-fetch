@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CBS 新闻聚合</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .news-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .news-item {
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+        .news-item:hover {
+            transform: translateY(-5px);
+        }
+        .news-image {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+        .news-content {
+            padding: 15px;
+        }
+        .news-title {
+            font-size: 18px;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        .news-summary {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        .news-date {
+            color: #999;
+            font-size: 12px;
+        }
+        .news-link {
+            display: block;
+            text-decoration: none;
+            color: inherit;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-size: 18px;
+            color: #666;
+        }
+        .error {
+            text-align: center;
+            padding: 20px;
+            font-size: 18px;
+            color: #e74c3c;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        .pagination button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 0 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .pagination button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CBS 新闻聚合</h1>
+        <div id="news-container" class="news-container">
+            <div class="loading">加载中...</div>
+        </div>
+        <div class="pagination">
+            <button id="prev-btn" disabled>上一页</button>
+            <button id="next-btn">下一页</button>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let currentPage = 0;
+        const itemsPerPage = 12;
+        let totalItems = 0;
+
+        // 加载新闻数据
+        async function loadNews(page = 0) {
+            const skip = page * itemsPerPage;
+            const newsContainer = document.getElementById('news-container');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            
+            try {
+                newsContainer.innerHTML = '<div class="loading">加载中...</div>';
+                
+                const response = await fetch(`/news?skip=${skip}&limit=${itemsPerPage}`);
+                if (!response.ok) {
+                    throw new Error('获取新闻数据失败');
+                }
+                
+                const newsData = await response.json();
+                
+                if (newsData.length === 0 && page === 0) {
+                    newsContainer.innerHTML = '<div class="error">暂无新闻数据</div>';
+                    return;
+                }
+                
+                // 更新分页按钮状态
+                prevBtn.disabled = page === 0;
+                nextBtn.disabled = newsData.length < itemsPerPage;
+                
+                // 清空容器
+                newsContainer.innerHTML = '';
+                
+                // 渲染新闻项
+                newsData.forEach(news => {
+                    const newsDate = new Date(news.published_at);
+                    const formattedDate = newsDate.toLocaleString('zh-CN');
+                    
+                    const newsElement = document.createElement('div');
+                    newsElement.className = 'news-item';
+                    newsElement.innerHTML = `
+                        <a href="${news.url}" target="_blank" class="news-link">
+                            <img src="${news.image_url || 'https://via.placeholder.com/300x180?text=No+Image'}" alt="${news.title}" class="news-image">
+                            <div class="news-content">
+                                <h3 class="news-title">${news.title}</h3>
+                                <p class="news-summary">${news.summary || '暂无摘要'}</p>
+                                <p class="news-date">${formattedDate}</p>
+                            </div>
+                        </a>
+                    `;
+                    
+                    newsContainer.appendChild(newsElement);
+                });
+                
+            } catch (error) {
+                console.error('Error:', error);
+                newsContainer.innerHTML = `<div class="error">加载失败: ${error.message}</div>`;
+            }
+        }
+
+        // 初始加载
+        document.addEventListener('DOMContentLoaded', () => {
+            loadNews(currentPage);
+            
+            // 分页事件监听
+            document.getElementById('prev-btn').addEventListener('click', () => {
+                if (currentPage > 0) {
+                    currentPage--;
+                    loadNews(currentPage);
+                }
+            });
+            
+            document.getElementById('next-btn').addEventListener('click', () => {
+                currentPage++;
+                loadNews(currentPage);
+            });
+        });
+    </script>
+</body>
+</html>

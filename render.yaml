@@ -1,0 +1,34 @@
+services:
+  # Web服务配置
+  - type: web
+    name: cbs-news-scraper
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    plan: free
+    # Python版本
+    runtime: python3
+    # 自动部署设置
+    autoDeploy: true
+    # 健康检查路径
+    healthCheckPath: /
+    # 环境变量
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: DATABASE_URL
+        # 如果你使用Render的PostgreSQL服务，可以使用以下格式引用数据库URL
+        # fromDatabase:
+        #   name: cbs-news-db
+        #   property: connectionString
+        # 否则，使用SQLite
+        value: sqlite:///./news.db
+      - key: PYTHON_VERSION
+        value: 3.11.0
+
+# 如果需要PostgreSQL数据库，取消下面的注释
+# databases:
+#   - name: cbs-news-db
+#     plan: free
+#     databaseName: cbs_news
+#     user: cbs_news_user
