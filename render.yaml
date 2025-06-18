@@ -32,3 +32,14 @@ services:
 #     plan: free
 #     databaseName: cbs_news
 #     user: cbs_news_user
+
+cronJobs:
+  - name: cbs-news-scraper-cron
+    schedule: "0 * * * *"  # 每小时运行一次
+    command: "curl -X POST https://cbs-news-scraper.onrender.com/scrape-now"
+    envVars:
+      - key: RENDER_EXTERNAL_URL
+        fromService:
+          name: cbs-news-scraper
+          type: web
+          property: url
