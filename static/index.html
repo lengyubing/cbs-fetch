@@ -3,101 +3,240 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CBS 新闻聚合</title>
+    <title>新闻聚合平台</title>
     <style>
+        /* 基础样式 */
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --accent-color: #f39c12;
+            --text-primary: #2c3e50;
+            --text-secondary: #7f8c8d;
+            --background-light: #f9f9f9;
+            --card-background: #ffffff;
+            --shadow-color: rgba(0, 0, 0, 0.08);
+            --transition-speed: 0.3s;
+        }
+        
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
             line-height: 1.6;
             margin: 0;
-            padding: 20px;
-            background-color: #f5f5f5;
+            padding: 0;
+            background-color: var(--background-light);
+            color: var(--text-primary);
         }
+        
         .container {
             max-width: 1200px;
             margin: 0 auto;
+            padding: 20px;
         }
+        
+        /* 标题样式 */
         h1 {
-            color: #333;
+            color: var(--primary-color);
             text-align: center;
-            margin-bottom: 30px;
+            margin: 30px 0;
+            font-weight: 600;
+            font-size: 2.2rem;
+            position: relative;
+            padding-bottom: 10px;
         }
+        
+        h1:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background-color: var(--secondary-color);
+            border-radius: 2px;
+        }
+        
+        /* 新闻容器 */
         .news-container {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
         }
+        
+        /* 新闻卡片 */
         .news-item {
-            background-color: #fff;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            background-color: var(--card-background);
+            border-radius: 10px;
+            box-shadow: 0 5px 15px var(--shadow-color);
             overflow: hidden;
-            transition: transform 0.3s ease;
+            transition: all var(--transition-speed) ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
         }
+        
         .news-item:hover {
-            transform: translateY(-5px);
+            transform: translateY(-8px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
         }
+        
         .news-image {
             width: 100%;
             height: 180px;
             object-fit: cover;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         }
+        
         .news-content {
-            padding: 15px;
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
         }
+        
         .news-title {
             font-size: 18px;
+            font-weight: 600;
             margin-top: 0;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+            line-height: 1.4;
         }
         .news-summary {
-            color: #666;
+            color: var(--text-secondary);
             font-size: 14px;
             margin-bottom: 15px;
+            flex-grow: 1;
+            line-height: 1.5;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
         }
+        
         .news-date {
-            color: #999;
+            color: var(--text-secondary);
             font-size: 12px;
+            margin-top: auto;
+            padding-top: 10px;
+            border-top: 1px dashed rgba(0, 0, 0, 0.05);
         }
+        
         .news-link {
             display: block;
             text-decoration: none;
             color: inherit;
+            height: 100%;
         }
+        
+        /* 来源标签样式 */
+        .source-tag {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 500;
+            color: white;
+            margin-bottom: 10px;
+        }
+        
+        .source-cbs {
+            background: linear-gradient(135deg, #4285f4, #34a0f5);
+        }
+        
+        .source-zhitong {
+            background: linear-gradient(135deg, #34a853, #2ecc71);
+        }
+        
+        /* 加载和错误状态 */
+        .loading, .error {
+            text-align: center;
+            padding: 40px 20px;
+            font-size: 18px;
+            border-radius: 10px;
+            background-color: var(--card-background);
+            box-shadow: 0 5px 15px var(--shadow-color);
+            margin: 30px auto;
+            max-width: 500px;
+        }
+        
         .loading {
-            text-align: center;
-            padding: 20px;
-            font-size: 18px;
-            color: #666;
+            color: var(--primary-color);
         }
+        
         .error {
-            text-align: center;
-            padding: 20px;
-            font-size: 18px;
             color: #e74c3c;
         }
+        
+        /* 分页控制 */
         .pagination {
             display: flex;
             justify-content: center;
-            margin-top: 30px;
+            margin-top: 40px;
+            margin-bottom: 20px;
         }
+        
         .pagination button {
-            background-color: #4CAF50;
+            background-color: var(--primary-color);
             color: white;
             border: none;
-            padding: 10px 15px;
-            margin: 0 5px;
-            border-radius: 5px;
+            padding: 12px 20px;
+            margin: 0 8px;
+            border-radius: 30px;
             cursor: pointer;
+            font-weight: 500;
+            transition: all var(--transition-speed) ease;
+            box-shadow: 0 3px 10px rgba(52, 152, 219, 0.2);
         }
+        
+        .pagination button:hover:not(:disabled) {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+        
         .pagination button:disabled {
-            background-color: #cccccc;
+            background-color: #bdc3c7;
             cursor: not-allowed;
+            box-shadow: none;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .news-container {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                gap: 20px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .news-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .news-image {
+                height: 160px;
+            }
+            
+            .pagination button {
+                padding: 10px 15px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>CBS 新闻聚合</h1>
+        <h1>新闻聚合平台</h1>
+        <p style="text-align: center; margin-bottom: 30px; color: var(--text-secondary); font-size: 16px; max-width: 600px; margin-left: auto; margin-right: auto;">整合CBS新闻和智通财经的最新资讯，随时掌握全球热点</p>
         <div id="news-container" class="news-container">
             <div class="loading">加载中...</div>
         </div>
@@ -149,10 +288,15 @@
                     
                     const newsElement = document.createElement('div');
                     newsElement.className = 'news-item';
+                    
+                    // 根据新闻来源决定是否显示图片
+                    const showImage = news.source !== '智通财经';
+                    
                     newsElement.innerHTML = `
                         <a href="${news.url}" target="_blank" class="news-link">
-                            <img src="${news.image_url || 'https://via.placeholder.com/300x180?text=No+Image'}" alt="${news.title}" class="news-image">
+                            ${showImage ? `<img src="${news.image_url || 'https://via.placeholder.com/300x180?text=No+Image'}" alt="${news.title}" class="news-image">` : ''}
                             <div class="news-content">
+                                <span class="source-tag ${news.source === 'CBS News' ? 'source-cbs' : 'source-zhitong'}">${news.source || '未知来源'}</span>
                                 <h3 class="news-title">${news.title}</h3>
                                 <p class="news-summary">${news.summary || '暂无摘要'}</p>
                                 <p class="news-date">${formattedDate}</p>

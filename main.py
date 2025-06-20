@@ -12,7 +12,7 @@ import json
 from pathlib import Path
 
 from models import NewsItem, Base, get_db, engine
-from scraper import scrape_cbs_news
+from scraper import scrape_cbs_news, scrape_zhitong_news
 
 # 创建数据库表
 Base.metadata.create_all(bind=engine)
@@ -68,9 +68,22 @@ async def get_news_item(news_id: int, db: Session = Depends(get_db)):
 
 @app.post("/scrape-now")
 async def scrape_now(background_tasks: BackgroundTasks):
-    """手动触发抓取任务"""
+    """手动触发所有抓取任务"""
     background_tasks.add_task(scrape_cbs_news)
-    return {"message": "Scraping task started"}
+    background_tasks.add_task(scrape_zhitong_news)
+    return {"message": "All scraping tasks started"}
+
+@app.post("/scrape-cbs")
+async def scrape_cbs(background_tasks: BackgroundTasks):
+    """手动触发CBS新闻抓取任务"""
+    background_tasks.add_task(scrape_cbs_news)
+    return {"message": "CBS News scraping task started"}
+
+@app.post("/scrape-zhitong")
+async def scrape_zhitong(background_tasks: BackgroundTasks):
+    """手动触发智通财经抓取任务"""
+    background_tasks.add_task(scrape_zhitong_news)
+    return {"message": "Zhitong Finance scraping task started"}
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
@@ -86,11 +99,13 @@ async def startup_event():
     logger.info("Starting up the application")
     # 启动时立即抓取一次
     scrape_cbs_news()
+    scrape_zhitong_news()
     
     # 设置定时任务，每小时抓取一次
-    scheduler.add_job(scrape_cbs_news, 'interval', hours=1)
+    scheduler.add_job(scrape_cbs_news, 'interval', hours=1, id='scrape_cbs')
+    scheduler.add_job(scrape_zhitong_news, 'interval', hours=1, id='scrape_zhitong')
     scheduler.start()
-    logger.info("Scheduled scraping job every hour")
+    logger.info("Scheduled all scraping jobs every hour")
 
 # 关闭时停止调度器
 @app.on_event("shutdown")

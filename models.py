@@ -5,7 +5,8 @@ import datetime
 import os
 
 # 数据库URL，使用SQLite作为开发环境，生产环境可以替换为PostgreSQL
-DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///./news.db")
+# 更改数据库文件名为news_v2.db，避免使用旧数据
+DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///./news_v2.db")
 
 # 创建SQLAlchemy引擎
 engine = create_engine(DATABASE_URL)
@@ -25,6 +26,7 @@ class NewsItem(Base):
     summary = Column(Text)
     url = Column(String(255), unique=True, index=True)
     image_url = Column(String(255), nullable=True)
+    source = Column(String(50), nullable=True)  # 添加来源字段
     published_at = Column(DateTime, default=datetime.datetime.utcnow)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
@@ -38,6 +40,7 @@ class NewsItem(Base):
             "summary": self.summary,
             "url": self.url,
             "image_url": self.image_url,
+            "source": self.source,
             "published_at": self.published_at.isoformat() if self.published_at else None,
             "created_at": self.created_at.isoformat()
         }
