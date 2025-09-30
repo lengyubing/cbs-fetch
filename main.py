@@ -34,9 +34,18 @@ static_dir.mkdir(exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # 添加CORS中间件
+# 注意：CORS 的 Origin 只包含协议+域名(+端口)，不包含路径，因此无需添加类似 "/share/*" 的路径匹配。
+# 为了兼容 EdgeOne Pages 的跨域访问，这里默认允许 mcp.edgeone.site。
+# 可通过环境变量 ALLOWED_ORIGINS 以逗号分隔覆盖默认值（例如："https://mcp.edgeone.site,https://example.com"）。
+allowed_origins_env = os.environ.get("ALLOWED_ORIGINS")
+if allowed_origins_env:
+    allowed_origins = [o.strip() for o in allowed_origins_env.split(",") if o.strip()]
+else:
+    allowed_origins = ["https://mcp.edgeone.site"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 在生产环境中应该限制来源
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
